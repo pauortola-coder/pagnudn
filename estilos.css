@@ -1,2 +1,22 @@
+.tabla-prestamos {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fdfdfb;
+    border: 1px solid #d6d3cc;
+}
 
+.tabla-prestamos th,
+.tabla-prestamos td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e4e1da;
+}
 
+.tabla-prestamos thead th {
+    background: #6a8e7f;
+    color: #fff;
+}
+
+.tabla-prestamos tbody tr:hover {
+    background: #f3efe6;
+}

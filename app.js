@@ -1,102 +1,86 @@
-// Declaración de variables
-let listaInscripciones = []
+let prestamos = JSON.parse(localStorage.getItem('prestamos')) || []
 let indiceEdicion = null
 
-const campoNombrePersona = document.getElementById('nombrePersona')
-const campoActividadSeleccionada = document.getElementById('actividadSeleccionada')
-const botonGuardar = document.getElementById('botonGuardar')
-const cuerpoTablaInscripciones = document.getElementById('cuerpoTablaInscripciones')
+const nombre = document.getElementById('nombreAlumno')
+const material = document.getElementById('material')
+const devuelto = document.getElementById('devuelto')
+const boton = document.getElementById('botonGuardar')
+const tabla = document.getElementById('cuerpoTabla')
+const mensajeVacio = document.getElementById('mensajeVacio')
 
-botonGuardar.addEventListener('click', guardarInscripcion)
+boton.addEventListener('click', guardar)
 
-
-// función principal
-function guardarInscripcion() {
-    //leer datos del formulario
-    const nombrePersona = campoNombrePersona.value.trim()
-    const actividadSeleccionada = campoActividadSeleccionada.value
-    const turnoMarcado = document.querySelector("input[name='turnoActividad']:checked")
-
-    //validarlos
-    if (nombrePersona === "" || actividadSeleccionada === "" || !turnoMarcado) {
+function guardar() {
+    const turno = document.querySelector("input[name='turno']:checked")
+    if (!nombre.value.trim() || !material.value || !turno) {
         alert('Todos los campos son obligatorios')
         return
     }
-
-    //crear el objeto que guardamos
-    const turnoSeleccionado = turnoMarcado.value
-
-    const nuevaInscripcion = {
-        nombre: nombrePersona,
-        actividad: actividadSeleccionada,
-        turno: turnoSeleccionado
+    const prestamo = {
+        nombreAlumno: nombre.value.trim(),
+        material: material.value,
+        turno: turno.value,
+        devuelto: devuelto.checked
     }
-
-    // C de CRUD (Create) o U (Update)
     if (indiceEdicion !== null) {
-        listaInscripciones[indiceEdicion] = nuevaInscripcion
-        indiceEdicion = null
-        botonGuardar.textContent = 'Añadir inscripción'
+        actualizar(prestamo)
     } else {
-        listaInscripciones.push(nuevaInscripcion)
+        crear(prestamo)
     }
-    
-    limpiarFormulario()
-    mostrarInscripciones()
+    limpiar()
+    mostrar()
 }
 
-//R de read
-function mostrarInscripciones() {
-    cuerpoTablaInscripciones.innerHTML = ""
+function crear(prestamo) {
+    prestamos.push(prestamo)
+}
 
-    listaInscripciones.forEach((inscripcion, indice) => {
-        cuerpoTablaInscripciones.innerHTML += `
+function actualizar(prestamo) {
+    prestamos[indiceEdicion] = prestamo
+    indiceEdicion = null
+    boton.textContent = 'Añadir préstamo'
+}
+
+function mostrar() {
+    localStorage.setItem('prestamos', JSON.stringify(prestamos))
+    tabla.innerHTML = ""
+    mensajeVacio.style.display = prestamos.length ? 'none' : 'block'
+    prestamos.forEach((p, i) => {
+        tabla.innerHTML += `
             <tr>
-                <td>${inscripcion.nombre}</td>
-                <td>${inscripcion.actividad}</td>
-                <td>${inscripcion.turno}</td>
+                <td>${p.nombreAlumno}</td>
+                <td>${p.material}</td>
+                <td>${p.turno}</td>
+                <td>${p.devuelto ? 'Sí' : 'No'}</td>
                 <td>
-                    <button class="btn btn-warning" onclick="editarInscripcion(${indice})">Editar</button>
-                    <button class="btn btn-danger" onclick="borrarInscripcion(${indice})">Borrar</button>
+                    <button class="btn btn-warning btn-sm" onclick="editar(${i})">Editar</button>
+                    <button class="btn btn-danger btn-sm" onclick="borrar(${i})">Borrar</button>
                 </td>
-            </tr>
-        `
+            </tr>`
     })
 }
 
-
-//Limpiar el formulario
-function limpiarFormulario() {
-    campoNombrePersona.value = ""
-    campoActividadSeleccionada.value = ""
-    document.querySelectorAll("input[name='turnoActividad']").forEach(radio => {
-        radio.checked = false
-    })
+function limpiar() {
+    nombre.value = ""
+    material.value = ""
+    devuelto.checked = false
+    document.querySelectorAll("input[name='turno']").forEach(r => r.checked = false)
 }
 
-//Borrar
-function borrarInscripcion(indice){
-    listaInscripciones.splice(indice,1)
-    mostrarInscripciones()
-
+function borrar(i) {
+    prestamos.splice(i, 1)
+    mostrar()
 }
 
-function editarInscripcion(indice){
-    const inscripcion = listaInscripciones[indice]
-    campoNombrePersona.value = inscripcion.nombre
-    campoActividadSeleccionada.value = inscripcion.actividad
-    const turnoRadio = document.querySelector(`input[name='turnoActividad'][value='${inscripcion.turno}']`)
-    if (turnoRadio) {
-        turnoRadio.checked = true
-    }
-    indiceEdicion = indice
-    botonGuardar.textContent = 'Actualizar inscripción'
-    campoNombrePersona.focus()
+function editar(i) {
+    const p = prestamos[i]
+    nombre.value = p.nombreAlumno
+    material.value = p.material
+    devuelto.checked = p.devuelto
+    document.querySelector(`input[name='turno'][value='${p.turno}']`).checked = true
+    indiceEdicion = i
+    boton.textContent = 'Guardar cambios'
+    nombre.focus()
 }
 
-
-indiceEdicion = indice 
-
-    botonGuardar.textContent = 'guardar cambios'
-    botonGuardar.classList.remove('btn-info')
-    botonGuardar.classList.add('btn-warning')
+mostrar()
